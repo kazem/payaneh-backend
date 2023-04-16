@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int        @id @default(autoincrement())
+  telegramUsername String
+  isVerified       Boolean    @default(false)
+  isEnabled        Boolean    @default(true)
+  requests         Requests[]
+  otp              Otp[]
+}
+
+model Otp {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  code      String
+  isExpired Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model RequestParameters {
+  id              Int               @id @default(autoincrement())
+  source          String
+  destination     String
+  date            String
+  dateUtc         DateTime
+  isEnabled       Boolean           @default(true)
+  PayanehRequests PayanehRequests[]
+  Requests        Requests[]
+}
+
+model Requests {
+  id                  Int               @id @default(autoincrement())
+  user                User              @relation(fields: [userId], references: [id])
+  userId              Int
+  startNotificationAt DateTime
+  endNotificationAt   DateTime
+  status              UserRequestStatus @default(NOT_AVAILABLE)
+  requestParameter    RequestParameters @relation(fields: [requestParameterId], references: [id])
+  requestParameterId  Int               @unique
+  fromTime            String
+  toTime              String
+  isEnabled           Boolean           @default(true)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  notifications       Notification[]
+}
+
+enum UserRequestStatus {
+  NOT_AVAILABLE
+  AVAILABLE
+  Canceled
+  Expired
+}
+
+model PayanehRequests {
+  id                 BigInt             @id @default(autoincrement())
+  requestParameter   RequestParameters  @relation(fields: [requestParameterId], references: [id])
+  requestParameterId Int
+  createdAt          DateTime           @default(now())
+  payanehResponses   PayanehResponses[]
+}
+
+model PayanehResponses {
+  id               BigInt          @id @default(autoincrement())
+  payanehRequest   PayanehRequests @relation(fields: [payanehRequestId], references: [id])
+  payanehRequestId BigInt
+  time             DateTime        @db.Time(0)
+  capacity         Int
+  createdAt        DateTime        @default(now())
+  notifications    Notification[]
+}
+
+model Notification {
+  id                BigInt           @id @default(autoincrement())
+  request           Requests         @relation(fields: [requestId], references: [id])
+  requestId         Int
+  payanehResponse   PayanehResponses @relation(fields: [payanehResponseId], references: [id])
+  payanehResponseId BigInt
+  message           String
+  createdAt         DateTime         @default(now())
+}

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Requests" ALTER COLUMN "fromTime" SET DATA TYPE TEXT,
+ALTER COLUMN "toTime" SET DATA TYPE TEXT;
