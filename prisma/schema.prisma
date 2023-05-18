@@ -44,7 +44,7 @@ model Requests {
   endNotificationAt   DateTime
   status              UserRequestStatus @default(NOT_AVAILABLE)
   requestParameter    RequestParameters @relation(fields: [requestParameterId], references: [id])
-  requestParameterId  Int               @unique
+  requestParameterId  Int
   fromTime            String
   toTime              String
   isEnabled           Boolean           @default(true)
