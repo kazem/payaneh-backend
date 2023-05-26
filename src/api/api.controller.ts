@@ -2,10 +2,11 @@
 /* eslint-disable no-var */
 /* eslint-disable prefer-const */
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, Post, Query, Header, Request } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Param, Request } from '@nestjs/common';
 import { UsersService } from 'src/modules/users/users.service';
 import { RequestService } from 'src/modules/requests/requests.service';
 import { RequestParametersService } from 'src/modules/requestParameters/requestParameters.service';
+import { OtpsService } from 'src/modules/otps/otps.service'
 import { JSDOM } from 'jsdom';
 import axios from 'axios'
 
@@ -13,14 +14,44 @@ import axios from 'axios'
 export class ApiController {
     constructor(private readonly usersService: UsersService,
         private readonly requestsService: RequestService,
-        private readonly requestParametersService: RequestParametersService) { }
+        private readonly requestParametersService: RequestParametersService,
+        private readonly otpsService: OtpsService
+    ) { }
 
     @Post(`user`)
-    async createTweet(@Body() data: { telegramUsername: string }) {
-        const { telegramUsername } = data;
-        return this.usersService.createUser({
-            telegramUsername
-        });
+    async createUser(@Body() data: { username: string }) {
+        let user = await this.usersService.getUser(data.username)
+        if (!user) {
+            user = await this.usersService.createUser(data.username)
+            return user;
+        }
+        else {
+            return {
+                err: {
+                    code: 400,
+                    message: "نام کاربری وجود دارد"
+                }
+            }
+        }
+
+    }
+
+    @Get(`user/:username`)
+    async getUser(@Param() params: { username: string }) {
+        let user = await this.usersService.getUser(params.username)
+        if (user)
+            return user;
+        return {
+            err: {
+                message: 'کاربر وجود ندارد'
+            }
+        }
+    }
+
+    @Post(`otp`)
+    async createOtp(@Body() data: { userId: number }) {
+        let otp = await this.otpsService.createOtp(data.userId)
+        return otp;
     }
 
     @Post(`request`)
@@ -28,9 +59,9 @@ export class ApiController {
         let requestParam = await this.requestParametersService.getRequestParameter(data.destination, data.source, data.date);
         if (!requestParam)
             requestParam = await this.requestParametersService.createRequestParameter(data.destination, data.source, data.date);
-        let request = await this.requestsService.getRequestUserByParameter(requestParam.id, 5)
+        let request = await this.requestsService.getRequestUserByParameter(requestParam.id, 2)
         if (!request)
-            request = await this.requestsService.createRequest(requestParam.id, 1, data.from, data.to, data.startNotification, data.endNotification);
+            request = await this.requestsService.createRequest(requestParam.id, 2, data.from, data.to, data.startNotification, data.endNotification);
         return request;
     }
 
