@@ -11,4 +11,21 @@ export class UsersRepository {
         const { data } = params;
         return this.prisma.user.create({ data });
     }
+
+    async getUser(username: string): Promise<User> {
+        return this.prisma.user.findFirst({
+            where: {
+                username: {
+                    equals: username
+                }
+            }
+        })
+    }
+
+    async updateUser(data: Prisma.UserUpdateInput, userId: number): Promise<User> {
+        return this.prisma.user.update({
+            data: data,
+            where: { id: userId }
+        })
+    }
 }

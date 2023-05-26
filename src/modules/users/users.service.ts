@@ -7,14 +7,24 @@ import { UsersRepository } from './users.repository';
 export class UsersService {
     constructor(private repository: UsersRepository) { }
 
-    async createUser(data) {
+    async createUser(username) {
         const user: Prisma.UserCreateInput = {
-            telegramUsername: data.telegramUsername,
+            telegramUsername: '',
             isEnabled: true,
             isVerified: false,
+            username: username
         }
-        const userCreateInput = await this.repository.createUser({ data: { ...user } });
+        const userCreateInput = await this.repository.createUser({ data: user });
         return userCreateInput;
     }
 
+    async getUser(username: string) {
+        const user = await this.repository.getUser(username);
+        return user;
+    }
+
+    async updateUser(data: Prisma.UserUpdateInput, userId: number) {
+        const userUpdateInput = await this.repository.updateUser(data, userId);
+        return userUpdateInput;
+    }
 }
